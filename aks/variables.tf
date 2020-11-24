@@ -1,5 +1,5 @@
 variable "namePrefix" {
-    description = "Prefix of the provisioned objects"
+  description = "Prefix of the provisioned objects"
 }
 
 variable "appId" {
