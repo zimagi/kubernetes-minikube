@@ -1,2 +1,2 @@
 # kubernetes
-Cloud based Kubernetes deployments automation via Terraform
+Cloud based Kubernetes deployment automation via Terraform
