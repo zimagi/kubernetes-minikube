@@ -28,3 +28,8 @@ $ terraform apply
 ```shell
 $ terraform destroy
 ```
+
+## Configure kubeconfig
+```shell
+aws eks update-kubeconfig --name zimagi-k8s-cluster
+```
