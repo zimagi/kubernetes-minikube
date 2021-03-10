@@ -9,6 +9,40 @@ jobs:
     steps:
       - name: "Checkout"
         uses: actions/checkout@master
+
+      - name: "Terraform Format"
+        uses: hashicorp/terraform-github-actions@master
+        with:
+          tf_actions_version: 0.12.13
+          tf_actions_subcommand: "fmt"
+          tf_actions_working_dir: "./aks"
+          tf_actions_comment: true
+
+      - name: "Terraform Init"
+        uses: hashicorp/terraform-github-actions@master
+        with:
+          tf_actions_version: 0.12.13
+          tf_actions_subcommand: "init"
+          tf_actions_working_dir: "./aks"
+          tf_actions_comment: true
+        env:
+          ARM_CLIENT_ID: ${{ secrets.TF_VAR_agent_client_id }}
+          ARM_CLIENT_SECRET: ${{ secrets.TF_VAR_agent_client_secret }}
+          ARM_SUBSCRIPTION_ID: ${{ secrets.TF_VAR_subscription_id }}
+          ARM_TENANT_ID: ${{ secrets.TF_VAR_tenant_id }}
+
+      - name: "Terraform Validate"
+        uses: hashicorp/terraform-github-actions@master
+        with:
+          tf_actions_version: 0.12.13
+          tf_actions_subcommand: "validate"
+          tf_actions_working_dir: "./aks"
+          tf_actions_comment: true
+        env:
+          ARM_CLIENT_ID: ${{ secrets.TF_VAR_agent_client_id }}
+          ARM_CLIENT_SECRET: ${{ secrets.TF_VAR_agent_client_secret }}
+          ARM_SUBSCRIPTION_ID: ${{ secrets.TF_VAR_subscription_id }}
+          ARM_TENANT_ID: ${{ secrets.TF_VAR_tenant_id }}
     
       - name: "Terraform Destroy"
         uses: hashicorp/terraform-github-actions@master
