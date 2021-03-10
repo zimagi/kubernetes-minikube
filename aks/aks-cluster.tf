@@ -3,13 +3,29 @@ provider "azurerm" {
   features {}
 }
 
+terraform {
+  backend "azurerm" {
+    resource_group_name  = "zimagi-azure-tf"
+    storage_account_name = "zimagiazuretf"
+    container_name       = "terraform-state"
+    key                  = "terraform.tfstate"
+  }
+}
+
 resource "azurerm_resource_group" "default" {
   name     = "${var.namePrefix}-rg"
-  location = "West US 2"
+  location = "${var.location}"
 
   tags = {
     environment = var.namePrefix,
   }
+}
+
+resource "azurerm_public_ip" "default" {
+  name                = "AKSPublicIp"
+  location            = azurerm_resource_group.default.location
+  resource_group_name = "${azurerm_resource_group.default.name}"
+  allocation_method   = "Static"
 }
 
 resource "azurerm_kubernetes_cluster" "default" {
@@ -20,15 +36,11 @@ resource "azurerm_kubernetes_cluster" "default" {
 
   default_node_pool {
     name            = "default"
-    node_count      = 2
+    node_count      = 1
     vm_size         = "Standard_D2_v2"
     os_disk_size_gb = 30
   }
 
-  service_principal {
-    client_id     = var.appId
-    client_secret = var.password
-  }
 
   role_based_access_control {
     enabled = true
@@ -38,6 +50,10 @@ resource "azurerm_kubernetes_cluster" "default" {
     kube_dashboard {
       enabled = true
     }
+  }
+
+  identity {
+    type = "SystemAssigned"
   }
 
   tags = {
