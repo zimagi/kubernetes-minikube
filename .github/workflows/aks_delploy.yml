@@ -10,6 +10,11 @@ jobs:
       - name: "Checkout"
         uses: actions/checkout@master
 
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
       - name: "Terraform Format"
         uses: hashicorp/terraform-github-actions@master
         with:
@@ -25,6 +30,11 @@ jobs:
           tf_actions_subcommand: "init"
           tf_actions_working_dir: "./aks"
           tf_actions_comment: true
+        env:
+          ARM_CLIENT_ID: ${{ secrets.TF_VAR_agent_client_id }}
+          ARM_CLIENT_SECRET: ${{ secrets.TF_VAR_agent_client_secret }}
+          ARM_SUBSCRIPTION_ID: ${{ secrets.TF_VAR_subscription_id }}
+          ARM_TENANT_ID: ${{ secrets.TF_VAR_tenant_id }}
 
       - name: "Terraform Validate"
         uses: hashicorp/terraform-github-actions@master
@@ -33,6 +43,11 @@ jobs:
           tf_actions_subcommand: "validate"
           tf_actions_working_dir: "./aks"
           tf_actions_comment: true
+        env:
+          ARM_CLIENT_ID: ${{ secrets.TF_VAR_agent_client_id }}
+          ARM_CLIENT_SECRET: ${{ secrets.TF_VAR_agent_client_secret }}
+          ARM_SUBSCRIPTION_ID: ${{ secrets.TF_VAR_subscription_id }}
+          ARM_TENANT_ID: ${{ secrets.TF_VAR_tenant_id }}
 
       - name: "Terraform Plan"
         uses: hashicorp/terraform-github-actions@master
@@ -42,10 +57,11 @@ jobs:
           tf_actions_working_dir: "./aks"
           tf_actions_comment: true
         env:
-          TF_VAR_agent_client_id: ${{ secrets.TF_VAR_agent_client_id }}
-          TF_VAR_agent_client_secret: ${{ secrets.TF_VAR_agent_client_secret }}
-          TF_VAR_subscription_id: ${{ secrets.TF_VAR_subscription_id }}
-          TF_VAR_tenant_id: ${{ secrets.TF_VAR_tenant_id }}
+          ARM_CLIENT_ID: ${{ secrets.TF_VAR_agent_client_id }}
+          ARM_CLIENT_SECRET: ${{ secrets.TF_VAR_agent_client_secret }}
+          ARM_SUBSCRIPTION_ID: ${{ secrets.TF_VAR_subscription_id }}
+          ARM_TENANT_ID: ${{ secrets.TF_VAR_tenant_id }}
+
       - name: "Terraform Apply"
         uses: hashicorp/terraform-github-actions@master
         with:
@@ -54,7 +70,7 @@ jobs:
           tf_actions_working_dir: "./aks"
           tf_actions_comment: true
         env:
-          TF_VAR_agent_client_id: ${{ secrets.TF_VAR_agent_client_id }}
-          TF_VAR_agent_client_secret: ${{ secrets.TF_VAR_agent_client_secret }}
-          TF_VAR_subscription_id: ${{ secrets.TF_VAR_subscription_id }}
-          TF_VAR_tenant_id: ${{ secrets.TF_VAR_tenant_id }}
+          ARM_CLIENT_ID: ${{ secrets.TF_VAR_agent_client_id }}
+          ARM_CLIENT_SECRET: ${{ secrets.TF_VAR_agent_client_secret }}
+          ARM_SUBSCRIPTION_ID: ${{ secrets.TF_VAR_subscription_id }}
+          ARM_TENANT_ID: ${{ secrets.TF_VAR_tenant_id }}
