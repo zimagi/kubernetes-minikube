@@ -36,3 +36,7 @@ terraform.rc
 # Vagrant files
 /vagrant/config.yml
 /.vagrant/
+
+# VSCode files
+/.vscode
+*.code-workspace
