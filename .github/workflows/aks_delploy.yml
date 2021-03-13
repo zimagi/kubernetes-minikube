@@ -1,19 +1,35 @@
 name: "Provision AKS cluster"
 on:
   workflow_dispatch:
-  
+env:
+    LOCATION: westus2
+    RESOURCE_GROUP_NAME: zimagi-rg
+    AKS_CLUSTER_NAME: zimagi-aks
 jobs:
-  terraform:
-    name: "Terraform"
+  provision_backend:
+    name: "Provision azure backend"
     runs-on: ubuntu-latest
     steps:
-      - name: "Checkout"
-        uses: actions/checkout@master
-
       - name: Azure Login
         uses: azure/login@v1
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Create azure backend
+        run: |
+          az group create --name ${{ env.TF_RESOURCE_GROUP_NAME }} --location ${{ env.LOCATION }}
+          az storage account create -n $TF_STORAGE_ACCOUNT_NAME -g $TF_RESOURCE_GROUP_NAME -l $LOCATION --sku Standard_LRS
+          az storage container create -n terraform-state --account-name $TF_STORAGE_ACCOUNT_NAME
+        env:
+          TF_RESOURCE_GROUP_NAME: "zimagi-tf"
+          TF_STORAGE_ACCOUNT_NAME: "zimagitfbackend"
+
+  terraform_apply:
+    name: "Terraform Apply"
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Checkout"
+        uses: actions/checkout@master
 
       - name: "Terraform Format"
         uses: hashicorp/terraform-github-actions@master
@@ -74,3 +90,59 @@ jobs:
           ARM_CLIENT_SECRET: ${{ secrets.TF_VAR_agent_client_secret }}
           ARM_SUBSCRIPTION_ID: ${{ secrets.TF_VAR_subscription_id }}
           ARM_TENANT_ID: ${{ secrets.TF_VAR_tenant_id }}
+      
+  deploy_ingress_controller:
+    name: "Deploy application gateway ingress controller"
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Checkout"
+        uses: actions/checkout@master
+
+      - uses: azure/setup-kubectl@v1
+        with:
+          version: 'v1.18.8'
+
+      - uses: azure/setup-helm@v1
+        with:
+          version: 'v3.4.0'
+
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: "Deploy ingress controller"
+        run: |
+          PUBLIC_IP_ADDRESS_NAME=$(az network public-ip list -g MC_${RESOURCE_GROUP_NAME}_${AKS_CLUSTER_NAME}_${LOCATION} --query [0].name -o tsv)
+          PUBLIC_IP_ADDRESS=$(az network public-ip show --name ${PUBLIC_IP_ADDRESS_NAME} --resource-group MC_${RESOURCE_GROUP_NAME}_${AKS_CLUSTER_NAME}_${LOCATION} --query ipAddress -o tsv)
+
+          az aks get-credentials \
+            --name ${AKS_CLUSTER_NAME} \
+            --resource-group ${RESOURCE_GROUP_NAME}
+
+          kubectl create namespace nginx-ingress
+
+          helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
+          helm repo add jetstack https://charts.jetstack.io
+          helm repo update
+
+          helm install nginx-ingress ingress-nginx/ingress-nginx \
+              --namespace nginx-ingress \
+              --set controller.replicaCount=2 \
+              --set controller.nodeSelector."beta\.kubernetes\.io/os"=linux \
+              --set defaultBackend.nodeSelector."beta\.kubernetes\.io/os"=linux \
+              --set controller.admissionWebhooks.patch.nodeSelector."beta\.kubernetes\.io/os"=linux \
+              --set controller.service.loadBalancerIP=${PUBLIC_IP_ADDRESS} \
+              --set controller.service.annotations."service\.beta\.kubernetes\.io/azure-dns-label-name"="zimagi"
+
+          kubectl label namespace nginx-ingress cert-manager.io/disable-validation=true
+
+          helm install \
+            cert-manager \
+            --namespace nginx-ingress \
+            --version v0.16.1 \
+            --set installCRDs=true \
+            --set nodeSelector."beta\.kubernetes\.io/os"=linux \
+            jetstack/cert-manager
+
+          kubectl apply -f ./aks/k8s/cluster-issuer.yaml          
