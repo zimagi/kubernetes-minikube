@@ -40,3 +40,6 @@ terraform.rc
 # VSCode files
 /.vscode
 *.code-workspace
+
+# For local ci testing porpuses
+.secrets
