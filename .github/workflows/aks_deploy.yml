@@ -152,6 +152,6 @@ jobs:
             jetstack/cert-manager
 
           # Wait until cert manager will be available
-          sleep 20
+          sleep 60
 
           kubectl apply -f ./aks/k8s/cluster-issuer.yaml          
