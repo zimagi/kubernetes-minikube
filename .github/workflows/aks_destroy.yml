@@ -93,6 +93,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: "Delete resource group"
-        run: az group delete -n ${{ env.TF_RESOURCE_GROUP_NAME }}
+        run: az group delete -n ${{ env.TF_RESOURCE_GROUP_NAME }} --yes
         env:
           TF_RESOURCE_GROUP_NAME: "zimagi-tf"
