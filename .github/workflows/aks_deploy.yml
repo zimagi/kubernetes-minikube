@@ -28,6 +28,7 @@ jobs:
 
   terraform_apply:
     name: "Terraform Apply"
+    needs: [provision_backend]
     strategy:
       max-parallel: 1
     runs-on: ubuntu-latest
@@ -97,6 +98,7 @@ jobs:
       
   deploy_ingress_controller:
     name: "Deploy application gateway ingress controller"
+    needs: [provision_backend, terraform_apply]
     strategy:
       max-parallel: 1
     runs-on: ubuntu-latest
@@ -119,9 +121,7 @@ jobs:
 
       - name: "Deploy ingress controller"
         run: |
-          PUBLIC_IP_ADDRESS_NAME=$(az network public-ip list -g MC_${RESOURCE_GROUP_NAME}_${AKS_CLUSTER_NAME}_${LOCATION} --query [0].name -o tsv)
-          PUBLIC_IP_ADDRESS=$(az network public-ip show --name ${PUBLIC_IP_ADDRESS_NAME} --resource-group MC_${RESOURCE_GROUP_NAME}_${AKS_CLUSTER_NAME}_${LOCATION} --query ipAddress -o tsv)
-
+          PUBLIC_IP_ADDRESS=$(az network public-ip create --resource-group MC_${RESOURCE_GROUP_NAME}_${AKS_CLUSTER_NAME}_${LOCATION} --location westus2 --name zimagi-agic --sku Standard --allocation-method static --query publicIp.ipAddress -o=tsv)
           az aks get-credentials \
             --name ${AKS_CLUSTER_NAME} \
             --resource-group ${RESOURCE_GROUP_NAME}

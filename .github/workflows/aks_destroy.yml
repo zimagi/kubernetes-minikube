@@ -30,6 +30,7 @@ jobs:
 
   terraform_destroy:
     name: "Terraform Destroy"
+    needs: [delete_ingress_controller]
     strategy:
       max-parallel: 1
     runs-on: ubuntu-latest
@@ -85,6 +86,7 @@ jobs:
           ARM_TENANT_ID: ${{ secrets.TF_VAR_tenant_id }}
   
   delete_azure_backend:
+    needs: [terraform_destroy]
     name: "Delete azure backend"
     strategy:
       max-parallel: 1
