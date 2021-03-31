@@ -151,4 +151,7 @@ jobs:
             --set nodeSelector."beta\.kubernetes\.io/os"=linux \
             jetstack/cert-manager
 
+          # Wait until cert manager will be available
+          sleep 20
+
           kubectl apply -f ./aks/k8s/cluster-issuer.yaml          
