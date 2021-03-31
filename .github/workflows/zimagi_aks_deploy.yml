@@ -1,0 +1,124 @@
+name: "Deploy Zimagi to AKS cluster"
+on:
+  workflow_dispatch:
+env:
+    LOCATION: westus2
+    RESOURCE_GROUP_NAME: zimagi-rg
+    AKS_CLUSTER_NAME: zimagi-aks
+jobs:
+  deploy_zimagi:
+    name: "Deploy zimagi"
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Checkout"
+        uses: actions/checkout@master
+      
+      - uses: azure/setup-kubectl@v1
+        with:
+          version: 'v1.18.8'
+
+      - uses: azure/setup-helm@v1
+        with:
+          version: 'v3.4.0'
+
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: "Get aks kubeconfig"
+        run: az aks get-credentials --name ${AKS_CLUSTER_NAME} --resource-group ${RESOURCE_GROUP_NAME}
+
+      - name: "Add helm repo bitnami"
+        run: helm repo add bitnami https://charts.bitnami.com/bitnami
+
+      - name: "Add helm repo zimagi"
+        run: helm repo add zimagi https://zimagi.github.io/charts
+
+      - name: "Update helm repos"
+        run: helm repo update
+
+      # - name: "Deploy postgresql"
+      #   run: |
+      #     kubectl create namespace data
+      #     helm install data \
+      #       --namespace data \
+      #       --set postgresqlUsername=zimagi \
+      #       --set postgresqlPassword=zimagi \
+      #       --set postgresqlDatabase=zimagi \
+      #       --set replication.enabled=true \
+      #       --set replication.slaveReplicas=2 \
+      #       --set replication.synchronousCommit="on" \
+      #       --set replication.numSynchronousReplicas=1 \
+      #       --set metrics.enabled=true \
+      #       --set persistence.enabled=true \
+      #       --set persistence.size=8Gi \
+      #       bitnami/postgresql
+      
+      # - name: "Deploy redis"
+      #   run: |
+      #     kubectl create namespace tasks
+      #     helm install tasks \
+      #       --namespace tasks \
+      #       --set password=zimagi \
+      #       --set cluster.slaveCount=3 \
+      #       --set metrics.enabled=true \
+      #       bitnami/redis
+
+      - name: "Deploy zimagi"
+        run: |
+          kubectl create namespace zimagi
+
+          helm install command-api \
+            --namespace zimagi \
+            --set entrypoint=zimagi-command \
+            --set logLevel=warning \
+            --set database.host=data-postgresql \
+            --set database.port=5432 \
+            --set database.user=zimagi \
+            --set database.pass=zimagi \
+            --set redis.host=tasks-redis-master.tasks \
+            --set redis.port=6379 \
+            --set redis.pass=zimagi \
+            zimagi/zimagi
+
+          helm install data-api \
+            --namespace zimagi \
+            --set entrypoint=zimagi-data \
+            --set logLevel=warning \
+            --set database.host=data-postgresql.data \
+            --set database.port=5432 \
+            --set database.user=zimagi \
+            --set database.pass=zimagi \
+            --set redis.host=tasks-redis-master.tasks \
+            --set redis.port=6379 \
+            --set redis.pass=zimagi \
+            zimagi/zimagi
+
+          helm install scheduler \
+            --namespace zimagi \
+            --set entrypoint=zimagi-scheduler \
+            --set logLevel=warning \
+            --set database.host=data-postgresql.data \
+            --set database.port=5432 \
+            --set database.user=zimagi \
+            --set database.pass=zimagi \
+            --set redis.host=tasks-redis-master.tasks \
+            --set redis.port=6379 \
+            --set redis.pass=zimagi \
+            zimagi/zimagi
+
+          helm install worker \
+            --namespace zimagi \
+            --set entrypoint=zimagi-worker \
+            --set logLevel=warning \
+            --set database.host=data-postgresql.data \
+            --set database.port=5432 \
+            --set database.user=zimagi \
+            --set database.pass=zimagi \
+            --set redis.host=tasks-redis-master.tasks \
+            --set redis.port=6379 \
+            --set redis.pass=zimagi \
+            zimagi/zimagi
+
+    

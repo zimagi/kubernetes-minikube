@@ -8,6 +8,8 @@ env:
 jobs:
   provision_backend:
     name: "Provision azure backend"
+    strategy:
+      max-parallel: 1
     runs-on: ubuntu-latest
     steps:
       - name: Azure Login
@@ -26,6 +28,8 @@ jobs:
 
   terraform_apply:
     name: "Terraform Apply"
+    strategy:
+      max-parallel: 1
     runs-on: ubuntu-latest
     steps:
       - name: "Checkout"
@@ -93,6 +97,8 @@ jobs:
       
   deploy_ingress_controller:
     name: "Deploy application gateway ingress controller"
+    strategy:
+      max-parallel: 1
     runs-on: ubuntu-latest
     steps:
       - name: "Checkout"
