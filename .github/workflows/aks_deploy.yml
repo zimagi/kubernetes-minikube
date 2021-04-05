@@ -6,10 +6,9 @@ on:
             region:
                 description: Deployment region
                 required: false
-                default: westus2
 
 env:
-    AKS_REGION: ${{ github.event.inputs.region || westus2 }}
+    AKS_REGION: westus2
     AKS_RESOURCE_GROUP_NAME: zimagi-rg
     AKS_CLUSTER_NAME: zimagi-aks
 
@@ -27,6 +26,8 @@ jobs:
 
             - name: Create azure backend
               run: |
+                  AKS_REGION="${{ github.event.inputs.region || $AKS_REGION }}"
+
                   az group create --name $AZURE_TF_RESOURCE_GROUP_NAME --location $AKS_REGION
                   az storage account create -n $AZURE_TF_STORAGE_ACCOUNT_NAME -g $AZURE_TF_RESOURCE_GROUP_NAME -l $AKS_REGION --sku Standard_LRS
                   az storage container create -n terraform-state --account-name $AZURE_TF_STORAGE_ACCOUNT_NAME
@@ -129,6 +130,7 @@ jobs:
 
             - name: "Deploy ingress controller"
               run: |
+                  AKS_REGION="${{ github.event.inputs.region || $AKS_REGION }}"
                   PUBLIC_IP_ADDRESS=$(az network public-ip create --resource-group MC_${AKS_RESOURCE_GROUP_NAME}_${AKS_CLUSTER_NAME}_${AKS_REGION} --location $AKS_REGION --name zimagi-agic --sku Standard --allocation-method static --query publicIp.ipAddress -o=tsv)
 
                   az aks get-credentials \
