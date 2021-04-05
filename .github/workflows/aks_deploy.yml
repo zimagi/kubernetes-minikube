@@ -33,7 +33,7 @@ jobs:
                   az storage container create -n terraform-state --account-name $AZURE_TF_STORAGE_ACCOUNT_NAME
               env:
                   AZURE_TF_RESOURCE_GROUP_NAME: "zimagi-tf-rg"
-                  AZURE_TF_STORAGE_ACCOUNT_NAME: "zimagi-tf-backend"
+                  AZURE_TF_STORAGE_ACCOUNT_NAME: "zimagitfbackend"
 
     terraform_apply:
         name: "Terraform Apply"
