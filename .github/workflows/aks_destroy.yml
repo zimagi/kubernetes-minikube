@@ -1,103 +1,109 @@
 name: "Destroy AKS cluster"
+
 on:
-  workflow_dispatch:
+    workflow_dispatch:
+        inputs:
+            region:
+                description: Deployment region
+                required: false
+
 env:
-  LOCATION: westus2
-  RESOURCE_GROUP_NAME: zimagi-rg
-  AKS_CLUSTER_NAME: zimagi-aks
+    AKS_REGION: westus2
+    AKS_RESOURCE_GROUP_NAME: zimagi-rg
+    AKS_CLUSTER_NAME: zimagi-aks
 
 jobs:
-  delete_ingress_controller:
-    name: "Delete ingress controller"
-    strategy:
-      max-parallel: 1
-    runs-on: ubuntu-latest
-    steps:
-      - uses: azure/setup-helm@v1
-        with:
-          version: 'v3.4.0'
+    delete_ingress_controller:
+        name: "Delete ingress controller"
+        strategy:
+            max-parallel: 1
+        runs-on: ubuntu-latest
+        steps:
+            - uses: azure/setup-helm@v1
+              with:
+                  version: "v3.4.0"
 
-      - name: Azure Login
-        uses: azure/login@v1
-        with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
+            - name: Azure Login
+              uses: azure/login@v1
+              with:
+                  creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      - name: "Get kubeconfig"
-        run: az aks get-credentials --name ${{ env.AKS_CLUSTER_NAME }} --resource-group ${{ env.RESOURCE_GROUP_NAME }}
+            - name: "Get kubeconfig"
+              run: az aks get-credentials --name $AKS_CLUSTER_NAME --resource-group $AKS_RESOURCE_GROUP_NAME
 
-      - name: "Delete ingress controller"
-        run: helm delete nginx-ingress --namespace nginx-ingress
+            - name: "Delete ingress controller"
+              run: helm delete nginx-ingress --namespace nginx-ingress
 
-  terraform_destroy:
-    name: "Terraform Destroy"
-    needs: [delete_ingress_controller]
-    strategy:
-      max-parallel: 1
-    runs-on: ubuntu-latest
-    steps:
-      - name: "Checkout"
-        uses: actions/checkout@master
+    terraform_destroy:
+        name: "Terraform Destroy"
+        needs: [delete_ingress_controller]
+        strategy:
+            max-parallel: 1
+        runs-on: ubuntu-latest
+        steps:
+            - name: "Checkout"
+              uses: actions/checkout@master
 
-      - name: "Terraform Format"
-        uses: hashicorp/terraform-github-actions@master
-        with:
-          tf_actions_version: 0.12.13
-          tf_actions_subcommand: "fmt"
-          tf_actions_working_dir: "./aks"
-          tf_actions_comment: true
+            - name: "Terraform Format"
+              uses: hashicorp/terraform-github-actions@master
+              with:
+                  tf_actions_version: 0.12.13
+                  tf_actions_subcommand: "fmt"
+                  tf_actions_working_dir: "./aks"
+                  tf_actions_comment: true
 
-      - name: "Terraform Init"
-        uses: hashicorp/terraform-github-actions@master
-        with:
-          tf_actions_version: 0.12.13
-          tf_actions_subcommand: "init"
-          tf_actions_working_dir: "./aks"
-          tf_actions_comment: true
-        env:
-          ARM_CLIENT_ID: ${{ secrets.TF_VAR_agent_client_id }}
-          ARM_CLIENT_SECRET: ${{ secrets.TF_VAR_agent_client_secret }}
-          ARM_SUBSCRIPTION_ID: ${{ secrets.TF_VAR_subscription_id }}
-          ARM_TENANT_ID: ${{ secrets.TF_VAR_tenant_id }}
+            - name: "Terraform Init"
+              uses: hashicorp/terraform-github-actions@master
+              with:
+                  tf_actions_version: 0.12.13
+                  tf_actions_subcommand: "init"
+                  tf_actions_working_dir: "./aks"
+                  tf_actions_comment: true
+              env:
+                  ARM_CLIENT_ID: ${{ secrets.AZURE_TF_VAR_AGENT_CLIENT_ID }}
+                  ARM_CLIENT_SECRET: ${{ secrets.AZURE_TF_VAR_AGENT_CLIENT_SECRET }}
+                  ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_TF_VAR_SUBSCRIPTION_ID }}
+                  ARM_TENANT_ID: ${{ secrets.AZURE_TF_VAR_TENANT_ID }}
 
-      - name: "Terraform Validate"
-        uses: hashicorp/terraform-github-actions@master
-        with:
-          tf_actions_version: 0.12.13
-          tf_actions_subcommand: "validate"
-          tf_actions_working_dir: "./aks"
-          tf_actions_comment: true
-        env:
-          ARM_CLIENT_ID: ${{ secrets.TF_VAR_agent_client_id }}
-          ARM_CLIENT_SECRET: ${{ secrets.TF_VAR_agent_client_secret }}
-          ARM_SUBSCRIPTION_ID: ${{ secrets.TF_VAR_subscription_id }}
-          ARM_TENANT_ID: ${{ secrets.TF_VAR_tenant_id }}
-    
-      - name: "Terraform Destroy"
-        uses: hashicorp/terraform-github-actions@master
-        with:
-          tf_actions_version: 0.12.13
-          tf_actions_subcommand: "destroy"
-          tf_actions_working_dir: "./aks"
-          tf_actions_comment: true
-        env:
-          ARM_CLIENT_ID: ${{ secrets.TF_VAR_agent_client_id }}
-          ARM_CLIENT_SECRET: ${{ secrets.TF_VAR_agent_client_secret }}
-          ARM_SUBSCRIPTION_ID: ${{ secrets.TF_VAR_subscription_id }}
-          ARM_TENANT_ID: ${{ secrets.TF_VAR_tenant_id }}
-  
-  delete_azure_backend:
-    needs: [terraform_destroy]
-    name: "Delete azure backend"
-    strategy:
-      max-parallel: 1
-    runs-on: ubuntu-latest
-    steps:
-      - name: Azure Login
-        uses: azure/login@v1
-        with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
+            - name: "Terraform Validate"
+              uses: hashicorp/terraform-github-actions@master
+              with:
+                  tf_actions_version: 0.12.13
+                  tf_actions_subcommand: "validate"
+                  tf_actions_working_dir: "./aks"
+                  tf_actions_comment: true
+              env:
+                  ARM_CLIENT_ID: ${{ secrets.AZURE_TF_VAR_AGENT_CLIENT_ID }}
+                  ARM_CLIENT_SECRET: ${{ secrets.AZURE_TF_VAR_AGENT_CLIENT_SECRET }}
+                  ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_TF_VAR_SUBSCRIPTION_ID }}
+                  ARM_TENANT_ID: ${{ secrets.AZURE_TF_VAR_TENANT_ID }}
 
-      - name: "Delete resource group"
-        run: az group delete -n ${{ env.TF_RESOURCE_GROUP_NAME }} --yes
-        env:
-          TF_RESOURCE_GROUP_NAME: "zimagi-tf"
+            - name: "Terraform Destroy"
+              uses: hashicorp/terraform-github-actions@master
+              with:
+                  tf_actions_version: 0.12.13
+                  tf_actions_subcommand: "destroy"
+                  tf_actions_working_dir: "./aks"
+                  tf_actions_comment: true
+              env:
+                  ARM_CLIENT_ID: ${{ secrets.AZURE_TF_VAR_AGENT_CLIENT_ID }}
+                  ARM_CLIENT_SECRET: ${{ secrets.AZURE_TF_VAR_AGENT_CLIENT_SECRET }}
+                  ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_TF_VAR_SUBSCRIPTION_ID }}
+                  ARM_TENANT_ID: ${{ secrets.AZURE_TF_VAR_TENANT_ID }}
+
+    delete_azure_backend:
+        needs: [terraform_destroy]
+        name: "Delete azure backend"
+        strategy:
+            max-parallel: 1
+        runs-on: ubuntu-latest
+        steps:
+            - name: Azure Login
+              uses: azure/login@v1
+              with:
+                  creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+            - name: "Delete resource group"
+              run: az group delete -n $AZURE_TF_RESOURCE_GROUP_NAME --yes
+              env:
+                  AZURE_TF_RESOURCE_GROUP_NAME: "zimagi-tf-rg"
