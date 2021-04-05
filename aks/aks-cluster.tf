@@ -5,7 +5,7 @@ provider "azurerm" {
 
 terraform {
   backend "azurerm" {
-    resource_group_name  = "zimagi-tf"
+    resource_group_name  = "zimagi-tf-rg"
     storage_account_name = "zimagitfbackend"
     container_name       = "terraform-state"
     key                  = "terraform.tfstate"
