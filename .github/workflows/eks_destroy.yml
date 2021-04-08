@@ -1,0 +1,57 @@
+name: "Provision EKS cluster"
+on:
+  workflow_dispatch:
+env:
+    LOCATION: us-east-2
+    RESOURCE_GROUP_NAME: zimagi-rg
+    AKS_CLUSTER_NAME: zimagi-aks
+jobs:
+  provision_eks_backend:
+    name: "Provision aws backend"
+    runs-on: ubuntu-latest
+    steps:
+    - name: Configure AWS credentials from Test account
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ env.LOCATION }}
+
+    - name: "Delete S3 bucket of terraform"
+      run: |
+        aws s3 rm s3://zimagi-terraform-remote-backend --recursive
+
+  terraform_eks_destroy:
+    name: "Terraform Apply"
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: eks
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_DEFAULT_REGION: ${{ env.LOCATION }}
+    steps:
+      - name: "Checkout"
+        uses: actions/checkout@master
+
+      - name: "Install terraform cli"
+        uses: hashicorp/setup-terraform@v1
+        with:
+          terraform_version: 0.12.25
+
+      - name: "Terraform format"
+        run: terraform fmt -check -no-color
+        continue-on-error: false
+
+      - name: "Terraform Init"
+        run: terraform init
+        continue-on-error: false
+        
+      # - name: "Terraform Validate"
+      #   run: terraform validate -no-color
+      #   continue-on-error: false
+
+      - name: "Terraform Destroy"
+        run: terraform destroy -no-color -auto-approve
+        continue-on-error: false
