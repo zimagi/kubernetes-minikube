@@ -30,60 +30,40 @@ jobs:
 
   terraform_destroy:
     name: "Terraform Destroy"
-    needs: [delete_ingress_controller]
-    strategy:
-      max-parallel: 1
+    needs: [delete_ingress_controller]   
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: aks
+    env:
+      ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
+      ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
+      ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
+      ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
     steps:
       - name: "Checkout"
         uses: actions/checkout@master
-
-      - name: "Terraform Format"
-        uses: hashicorp/terraform-github-actions@master
+ 
+      - name: "Install terraform cli"
+        uses: hashicorp/setup-terraform@v1
         with:
-          tf_actions_version: 0.12.13
-          tf_actions_subcommand: "fmt"
-          tf_actions_working_dir: "./aks"
-          tf_actions_comment: true
+          terraform_version: 0.12.25
+
+      - name: "Terraform format"
+        run: terraform fmt -check -no-color
+        continue-on-error: false
 
       - name: "Terraform Init"
-        uses: hashicorp/terraform-github-actions@master
-        with:
-          tf_actions_version: 0.12.13
-          tf_actions_subcommand: "init"
-          tf_actions_working_dir: "./aks"
-          tf_actions_comment: true
-        env:
-          ARM_CLIENT_ID: ${{ secrets.TF_VAR_agent_client_id }}
-          ARM_CLIENT_SECRET: ${{ secrets.TF_VAR_agent_client_secret }}
-          ARM_SUBSCRIPTION_ID: ${{ secrets.TF_VAR_subscription_id }}
-          ARM_TENANT_ID: ${{ secrets.TF_VAR_tenant_id }}
-
+        run: terraform init
+        continue-on-error: false
+        
       - name: "Terraform Validate"
-        uses: hashicorp/terraform-github-actions@master
-        with:
-          tf_actions_version: 0.12.13
-          tf_actions_subcommand: "validate"
-          tf_actions_working_dir: "./aks"
-          tf_actions_comment: true
-        env:
-          ARM_CLIENT_ID: ${{ secrets.TF_VAR_agent_client_id }}
-          ARM_CLIENT_SECRET: ${{ secrets.TF_VAR_agent_client_secret }}
-          ARM_SUBSCRIPTION_ID: ${{ secrets.TF_VAR_subscription_id }}
-          ARM_TENANT_ID: ${{ secrets.TF_VAR_tenant_id }}
+        run: terraform validate -no-color
+        continue-on-error: false
     
       - name: "Terraform Destroy"
-        uses: hashicorp/terraform-github-actions@master
-        with:
-          tf_actions_version: 0.12.13
-          tf_actions_subcommand: "destroy"
-          tf_actions_working_dir: "./aks"
-          tf_actions_comment: true
-        env:
-          ARM_CLIENT_ID: ${{ secrets.TF_VAR_agent_client_id }}
-          ARM_CLIENT_SECRET: ${{ secrets.TF_VAR_agent_client_secret }}
-          ARM_SUBSCRIPTION_ID: ${{ secrets.TF_VAR_subscription_id }}
-          ARM_TENANT_ID: ${{ secrets.TF_VAR_tenant_id }}
+        run: terraform destroy -no-color -auto-approve
+        continue-on-error: false
   
   delete_azure_backend:
     needs: [terraform_destroy]
