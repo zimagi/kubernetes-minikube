@@ -26,7 +26,7 @@ jobs:
 
   terraform_apply:
     name: "Terraform Apply"
-    # needs: [provision_backend]
+    needs: [provision_backend]
     runs-on: ubuntu-latest
     defaults:
       run:

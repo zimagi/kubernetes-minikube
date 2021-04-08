@@ -50,19 +50,14 @@ Set the secret name to AZURE_CREDENTIALS and its value to the JSON string that y
 
 ![create_secret_azure_credentials](/aks/docs/images/provision_with_github_actions/create_credential.png)
 
-Terraform github action module uses a different approach for authenticate against azure cloud. It needs other secrets than `AZURE_CREDENTIALS`. Create the following secrets:
+The next table contains the required secrets:
 
 | NAME | VALUE |
 |------|-------|
-| TF_VAR_AGENT_CLIENT_ID | value of `clientId` from output json |
-| TF_VAR_AGENT_CLIENT_SECRET | value of `clientSecret` from output json |
-| TF_VAR_SUBSCRIPTION_ID | value of `subscriptionId` from output json |
-| TF_VAR_TENANT_ID | value of `tenantId` from output json |
-
-Other action secrets that need to be defined for Zimagi deployment:
-
-| NAME | VALUE |
-|------|-------|
+| ARM_CLIENT_ID | value of `clientId` from output json |
+| ARM_CLIENT_SECRET | value of `clientSecret` from output json |
+| ARM_SUBSCRIPTION_ID | value of `subscriptionId` from output json |
+| ARM_TENANT_ID | value of `tenantId` from output json |
 | POSTGRESQL_PASSWORD | password for PostgreSQL cluster |
 | REDIS_PASSWORD | password for Redis cluster |
 | DOMAIN_NAME | domain name for the ingress of both Zimagi command and data APIs |
