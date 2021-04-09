@@ -4,7 +4,7 @@ on:
 env:
     AWS_DEFAULT_REGION: us-east-2
 jobs:
-  destroy_eks_backend:
+  provision_eks_backend:
     name: "Provision aws backend"
     runs-on: ubuntu-latest
     steps:
@@ -13,10 +13,11 @@ jobs:
       with:
         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY }}
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ env.AWS_DEFAULT_REGION }}
 
     - name: "Create S3 bucket for terraform"
       run: |
-        aws s3 mb s3://zimagi-terraform-remote-backend --region ${{ env.LOCATION }}
+        aws s3 mb s3://zimagi-terraform-remote-backend --region ${{ env.AWS_DEFAULT_REGION }}
 
   terraform_eks_apply:
     name: "Terraform Apply"
