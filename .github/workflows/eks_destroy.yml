@@ -41,6 +41,7 @@ jobs:
   destroy_eks_backend:
     name: "Provision aws backend"
     runs-on: ubuntu-latest
+    needs: [terraform_eks_destroy]
     steps:
     - name: Configure AWS credentials from Test account
       uses: aws-actions/configure-aws-credentials@v1

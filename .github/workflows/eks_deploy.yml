@@ -20,7 +20,7 @@ jobs:
 
   terraform_eks_apply:
     name: "Terraform Apply"
-    # needs: [provision_eks_backend]
+    needs: [provision_eks_backend]
     runs-on: ubuntu-latest
     defaults:
       run:
