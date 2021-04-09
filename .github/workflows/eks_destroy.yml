@@ -1,10 +1,8 @@
-name: "Provision EKS cluster"
+name: "Destroy EKS cluster"
 on:
   workflow_dispatch:
 env:
     LOCATION: us-east-2
-    RESOURCE_GROUP_NAME: zimagi-rg
-    AKS_CLUSTER_NAME: zimagi-aks
 jobs:
   provision_eks_backend:
     name: "Provision aws backend"
