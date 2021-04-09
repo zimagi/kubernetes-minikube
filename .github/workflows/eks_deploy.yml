@@ -2,7 +2,7 @@ name: "Provision EKS cluster"
 on:
   workflow_dispatch:
 env:
-    LOCATION: us-east-2
+    AWS_DEFAULT_REGION: us-east-2
 jobs:
   destroy_eks_backend:
     name: "Provision aws backend"
@@ -13,7 +13,6 @@ jobs:
       with:
         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY }}
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws-region: ${{ env.LOCATION }}
 
     - name: "Create S3 bucket for terraform"
       run: |
@@ -29,7 +28,6 @@ jobs:
     env:
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-      AWS_DEFAULT_REGION: ${{ env.LOCATION }}
     steps:
       - name: "Checkout"
         uses: actions/checkout@master
