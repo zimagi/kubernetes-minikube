@@ -1,3 +1,11 @@
+terraform {
+  backend "s3" {
+    bucket = "zimagi-terraform-remote-backend"
+    key    = "terraform.tfstate"
+    region = "us-east-2"
+  }
+}
+
 provider "aws" {
   version = ">= 2.28.1"
   region  = "us-east-2"

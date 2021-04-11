@@ -1,4 +1,10 @@
-# Provision an EKS Cluster with Terraform
+# Provision AKS cluster
+
+This folder contains terraform configurations for Kubernetes-as-a-Service cluster in AWS environment:
+- [Provision aws backend for terraform](./docs/provision_aws_backend.md)
+- [Provision eks with terraform](./docs/provision_eks_with_terraform.md)
+- [Provision eks with github actions](./docs/provision_eks_with_actions.md)
+
 
 ## Software requirements
 - awscli
