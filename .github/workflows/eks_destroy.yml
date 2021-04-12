@@ -52,4 +52,4 @@ jobs:
 
     - name: "Delete S3 bucket of terraform"
       run: |
-        aws s3 rm s3://zimagi-terraform-remote-backend --recursive
+        aws s3 rm s3://zimagi-terraform-remote-backend
