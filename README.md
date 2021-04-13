@@ -9,6 +9,8 @@ echo $(minikube ip) example.com | sudo tee -a /etc/hosts
 curl http://example.com
 ```
 
+The included Vagrantfile creates a VirtualBox VM that installs and starts up Minikube and ensures related tooling.  When you run "vagrant up" Minikube is running, kubectl is configured, and helm is connected.  You can start using the Kubernetes platform. 
+
 ## Prerequisites
 You must have an Ingress controller to satisfy an Ingress. Only creating an Ingress resource has no effect.
 
@@ -17,7 +19,7 @@ You may need to deploy an Ingress controller such as ingress-nginx. You can choo
 Ideally, all Ingress controllers should fit the reference specification. In reality, the various Ingress controllers operate slightly differently.
 
 ### Software requirements
-- [minikube](https://v1-18.docs.kubernetes.io/docs/tasks/tools/install-minikube/)
+- [minikube](https://v1-18.docs.kubernetes.io/docs/tasks/tools/install-minikube/) - Installed on Vagrant VM
 
 ## Minikube environment
 minikube is local Kubernetes, focusing on making it easy to learn and develop for Kubernetes.
@@ -27,6 +29,8 @@ All you need is Docker (or similarly compatible) container or a Virtual Machine 
 ```shell
 minikube start --vm=true
 ```
+
+When using the Vagrant environment a Docker base Minikube is already started and ready for usage within the VM.
 
 ### Enable Nginx-Ingress contoller
 To enable the NGINX Ingress controller, run the following command:
