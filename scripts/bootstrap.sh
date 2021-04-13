@@ -72,6 +72,6 @@ wget --output-document=/tmp/minikube https://storage.googleapis.com/minikube/rel
 install /tmp/minikube /usr/local/bin >>"$LOG_FILE" 2>&1
 
 echo "Starting Minikube" | tee -a "$LOG_FILE"
-su - vagrant -c "minikube delete" >>"$LOG_FILE" 2>&1
+su - vagrant -c "minikube delete --purge=true" >>"$LOG_FILE" 2>&1
 su - vagrant -c "minikube start --kubernetes-version=$KUBERNETES_VERSION" >>"$LOG_FILE" 2>&1
-su - vagrant -c 'kubectl config use-context minikube' >>"$LOG_FILE" 2>&1
+su - vagrant -c "kubectl config use-context minikube" >>"$LOG_FILE" 2>&1
