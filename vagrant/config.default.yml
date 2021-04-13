@@ -5,7 +5,7 @@
 # (directory of this file) and your overrides will take effect on the next
 # vagrant up or reload.
 #
-hostname: "kubernetes"
+hostname: "kubernetes-minikube"
 box_name: "bento/ubuntu-20.04"
 user: "vagrant"
 cpus: 1
