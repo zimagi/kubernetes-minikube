@@ -58,7 +58,12 @@ Vagrant.configure("2") do |config|
     machine.vm.provision :shell do |s|
       s.name = "Bootstrapping development environment"
       s.path = "scripts/bootstrap.sh"
-      s.args = [ 'vagrant', vm_config['log_output'], vm_config['time_zone'] ]
+      s.args = [ 
+        'vagrant', 
+        vm_config['log_output'], 
+        vm_config['time_zone'], 
+        vm_config['kubernetes_version'] 
+      ]
     end
   end
 end

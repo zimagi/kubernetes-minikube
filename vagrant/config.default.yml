@@ -16,3 +16,4 @@ copy_bash_aliases: false
 copy_bashrc: false
 time_zone: "America/New_York"
 log_output: "/var/log/bootstrap.log"
+kubernetes_version: v1.21.0
