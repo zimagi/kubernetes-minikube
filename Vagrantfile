@@ -30,6 +30,8 @@ Vagrant.configure("2") do |config|
     machine.ssh.username = vm_config["user"]
 
     machine.vm.synced_folder ".", "/vagrant", disabled: true
+    machine.vm.synced_folder "./k8s", "/home/vagrant/k8s", owner: "vagrant", group: "vagrant"
+    machine.vm.synced_folder "./clusters", "/home/vagrant/clusters", owner: "vagrant", group: "vagrant"
 
     machine.vm.provision :shell, inline: set_environment, run: "always"
 
