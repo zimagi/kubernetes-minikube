@@ -79,3 +79,6 @@ su - vagrant -c "kubectl config use-context minikube" >>"$LOG_FILE" 2>&1
 echo "Adding Zimagi Helm repository" | tee -a "$LOG_FILE"
 helm repo add zimagi https://charts.zimagi.com >>"$LOG_FILE" 2>&1
 helm repo update >>"$LOG_FILE" 2>&1
+
+echo "Installing the Zimagi CLI" | tee -a "$LOG_FILE"
+pip install zimagi >>"$LOG_FILE" 2>&1
