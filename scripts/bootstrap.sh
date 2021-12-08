@@ -76,12 +76,19 @@ su - vagrant -c "minikube delete --purge=true" >>"$LOG_FILE" 2>&1
 su - vagrant -c "minikube start --kubernetes-version=$KUBERNETES_VERSION" >>"$LOG_FILE" 2>&1
 su - vagrant -c "kubectl config use-context minikube" >>"$LOG_FILE" 2>&1
 
-echo "Adding Zimagi Helm repository" | tee -a "$LOG_FILE"
-su - vagrant -c helm repo add zimagi https://charts.zimagi.com >>"$LOG_FILE" 2>&1
-su - vagrant -c helm repo update >>"$LOG_FILE" 2>&1
+echo "Adding Zimagi Helm repository and deploying Zimagi" | tee -a "$LOG_FILE"
+su - vagrant -c "helm repo add zimagi https://charts.zimagi.com" >>"$LOG_FILE" 2>&1
+su - vagrant -c "helm repo update" >>"$LOG_FILE" 2>&1
+su - vagrant -c "helm install zimagi zimagi/zimagi" >>"$LOG_FILE" 2>&1
 
 echo "Installing the Zimagi CLI" | tee -a "$LOG_FILE"
 pip install zimagi >>"$LOG_FILE" 2>&1
 
 echo "Setting up Zimagi domain alias" | tee -a "$LOG_FILE"
-su - vagrant -c "echo $(minikube ip) zimagi.local" | tee -a /etc/hosts
+su - vagrant -c "minikube ip > /tmp/minikube.ip"
+echo "$(cat /tmp/minikube.ip) zimagi.local" | tee -a /etc/hosts
+
+echo "Install and setup the Nginx ingress controller" | tee -a "$LOG_FILE"
+su - vagrant -c "helm repo add nginx-stable https://helm.nginx.com/stable" >>"$LOG_FILE" 2>&1
+su - vagrant -c "helm repo update" >>"$LOG_FILE" 2>&1
+su - vagrant -c "helm install nginx nginx-stable/nginx-ingress" >>"$LOG_FILE" 2>&1
