@@ -82,3 +82,6 @@ su - vagrant -c helm repo update >>"$LOG_FILE" 2>&1
 
 echo "Installing the Zimagi CLI" | tee -a "$LOG_FILE"
 pip install zimagi >>"$LOG_FILE" 2>&1
+
+echo "Setting up Zimagi domain alias" | tee -a "$LOG_FILE"
+su - vagrant -c "echo $(minikube ip) zimagi.local" | tee -a /etc/hosts
