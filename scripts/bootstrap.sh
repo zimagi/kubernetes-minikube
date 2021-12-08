@@ -75,3 +75,7 @@ echo "Starting Minikube" | tee -a "$LOG_FILE"
 su - vagrant -c "minikube delete --purge=true" >>"$LOG_FILE" 2>&1
 su - vagrant -c "minikube start --kubernetes-version=$KUBERNETES_VERSION" >>"$LOG_FILE" 2>&1
 su - vagrant -c "kubectl config use-context minikube" >>"$LOG_FILE" 2>&1
+
+echo "Adding Zimagi Helm repository" | tee -a "$LOG_FILE"
+helm repo add zimagi https://charts.zimagi.com >>"$LOG_FILE" 2>&1
+helm repo update >>"$LOG_FILE" 2>&1
