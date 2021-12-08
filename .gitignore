@@ -8,3 +8,6 @@ crash.log
 # VSCode files
 /.vscode
 *.code-workspace
+
+# Kubernetes Helm Values
+/clusters/*.yml
