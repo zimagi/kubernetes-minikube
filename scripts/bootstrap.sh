@@ -6,7 +6,7 @@ TOP_DIR="`pwd`"
 APP_USER="${1:-vagrant}"
 LOG_FILE="${2:-/dev/stderr}"
 TIME_ZONE="${3:-America/New_York}"
-KUBERNETES_VERSION="${4:-v1.21.0}"
+KUBERNETES_VERSION="${4:-v1.22.0}"
 
 if [ "$APP_USER" == 'root' ]
 then
@@ -61,10 +61,17 @@ chmod 700 /tmp/helm_install.sh
 /tmp/helm_install.sh -v v3.2.4 >>"$LOG_FILE" 2>&1
 
 echo "Installing Docker" | tee -a "$LOG_FILE"
-apt-key adv --fetch-keys https://download.docker.com/linux/ubuntu/gpg
-echo "deb [arch=amd64] https://download.docker.com/linux/debian/ buster stable" > /etc/apt/sources.list.d/docker.list
+# apt-key adv --fetch-keys https://download.docker.com/linux/ubuntu/gpg
+# echo "deb [arch=amd64] https://download.docker.com/linux/debian/ buster stable" > /etc/apt/sources.list.d/docker.list
+# apt-get update >>"$LOG_FILE" 2>&1
+# apt-get install -y docker-ce >>"$LOG_FILE" 2>&1
+# usermod -aG docker vagrant >>"$LOG_FILE" 2>&1
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+echo \
+"deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu \
+$(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list >>"$LOG_FILE" 2>&1
 apt-get update >>"$LOG_FILE" 2>&1
-apt-get install -y docker-ce >>"$LOG_FILE" 2>&1
+apt-get install -y docker-ce docker-ce-cli containerd.io >>"$LOG_FILE" 2>&1
 usermod -aG docker vagrant >>"$LOG_FILE" 2>&1
 
 echo "Installing Minikube" | tee -a "$LOG_FILE"
@@ -72,8 +79,8 @@ wget --output-document=/tmp/minikube https://storage.googleapis.com/minikube/rel
 install /tmp/minikube /usr/local/bin >>"$LOG_FILE" 2>&1
 
 echo "Starting Minikube" | tee -a "$LOG_FILE"
-su - vagrant -c "minikube delete --purge=true" >>"$LOG_FILE" 2>&1
-su - vagrant -c "minikube start --kubernetes-version=$KUBERNETES_VERSION" >>"$LOG_FILE" 2>&1
+# su - vagrant -c "minikube delete --purge=true" >>"$LOG_FILE" 2>&1
+su - vagrant -c "minikube start  --cpus=2 --driver=docker --kubernetes-version=$KUBERNETES_VERSION" >>"$LOG_FILE" 2>&1
 su - vagrant -c "kubectl config use-context minikube" >>"$LOG_FILE" 2>&1
 
 echo "Adding Zimagi Helm repository and deploying Zimagi" | tee -a "$LOG_FILE"
@@ -88,7 +95,10 @@ echo "Setting up Zimagi domain alias" | tee -a "$LOG_FILE"
 su - vagrant -c "minikube ip > /tmp/minikube.ip"
 echo "$(cat /tmp/minikube.ip) zimagi.local" | tee -a /etc/hosts
 
+# echo "Install and setup the Nginx ingress controller" | tee -a "$LOG_FILE"
+# su - vagrant -c "helm repo add nginx-stable https://helm.nginx.com/stable" >>"$LOG_FILE" 2>&1
+# su - vagrant -c "helm repo update" >>"$LOG_FILE" 2>&1
+# su - vagrant -c "helm install nginx nginx-stable/nginx-ingress" >>"$LOG_FILE" 2>&1
+
 echo "Install and setup the Nginx ingress controller" | tee -a "$LOG_FILE"
-su - vagrant -c "helm repo add nginx-stable https://helm.nginx.com/stable" >>"$LOG_FILE" 2>&1
-su - vagrant -c "helm repo update" >>"$LOG_FILE" 2>&1
-su - vagrant -c "helm install nginx nginx-stable/nginx-ingress" >>"$LOG_FILE" 2>&1
+su - vagrant -c "minikube addons enable ingress" >>"$LOG_FILE" 2>&1

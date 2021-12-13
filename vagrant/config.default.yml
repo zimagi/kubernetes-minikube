@@ -8,12 +8,14 @@
 hostname: "kubernetes-minikube"
 box_name: "bento/ubuntu-20.04"
 user: "vagrant"
-cpus: 1
-memory_size: 2048
+# The minimal number of cpus is 2 for minikube
+cpus: 2
+memory_size: 4096
 copy_vimrc: false
 copy_profile: false
 copy_bash_aliases: false
 copy_bashrc: false
 time_zone: "America/New_York"
 log_output: "/var/log/bootstrap.log"
-kubernetes_version: v1.21.0
+# After Version 1.20 deprecated docker. Zimagi depends on docker engine.
+kubernetes_version: v1.20.0

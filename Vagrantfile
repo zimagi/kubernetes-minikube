@@ -18,7 +18,7 @@ Vagrant.configure("2") do |config|
   config.vm.define :zimagi do |machine|
     machine.vm.box = vm_config["box_name"]
     machine.vm.hostname = vm_config["hostname"]
-    machine.vm.network "private_network", type: "dhcp"
+    # machine.vm.network "private_network", type: "dhcp"
 
     machine.vm.provider :virtualbox do |v|
       v.name = vm_config["hostname"]
@@ -30,8 +30,6 @@ Vagrant.configure("2") do |config|
     machine.ssh.username = vm_config["user"]
 
     machine.vm.synced_folder ".", "/vagrant", disabled: true
-    machine.vm.synced_folder "./k8s", "/home/vagrant/k8s", owner: "vagrant", group: "vagrant"
-    machine.vm.synced_folder "./clusters", "/home/vagrant/clusters", owner: "vagrant", group: "vagrant"
 
     machine.vm.provision :shell, inline: set_environment, run: "always"
 
@@ -60,12 +58,14 @@ Vagrant.configure("2") do |config|
     machine.vm.provision :shell do |s|
       s.name = "Bootstrapping development environment"
       s.path = "scripts/bootstrap.sh"
-      s.args = [ 
-        'vagrant', 
-        vm_config['log_output'], 
-        vm_config['time_zone'], 
-        vm_config['kubernetes_version'] 
+      s.args = [
+        'vagrant',
+        vm_config['log_output'],
+        vm_config['time_zone'],
+        vm_config['kubernetes_version']
       ]
     end
+    machine.vm.network :forwarded_port, guest: 5123, host: 80
+    # machine.vm.network :forwarded_port, guest: 5323, host: 80
   end
 end
